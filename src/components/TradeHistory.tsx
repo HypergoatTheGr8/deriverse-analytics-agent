@@ -1,63 +1,85 @@
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from '@mui/material';
-import { NoteAdd, Notes } from '@mui/icons-material';
-import TradeAnnotation from './TradeAnnotation';
-import { Trade } from '../types';
+'use client';
+
+import { useState } from 'react';
+import { Trade } from '@/types/trade';
+import { TradeAnnotation } from './TradeAnnotation';
 
 interface TradeHistoryProps {
   trades: Trade[];
 }
 
-const TradeHistory: React.FC<TradeHistoryProps> = ({ trades }) => {
-  const [openAnnotation, setOpenAnnotation] = useState(false);
-  const [selectedTradeId, setSelectedTradeId] = useState('');
+export function TradeHistory({ trades }: TradeHistoryProps) {
+  const [annotationOpen, setAnnotationOpen] = useState(false);
+  const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
 
-  const handleOpenAnnotation = (tradeId: string) => {
-    setSelectedTradeId(tradeId);
-    setOpenAnnotation(true);
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString();
   };
 
-  const handleCloseAnnotation = () => {
-    setOpenAnnotation(false);
+  const hasNote = (tradeId: string) => {
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem(`trade-note-${tradeId}`);
+  };
+
+  const openAnnotation = (tradeId: string) => {
+    setSelectedTradeId(tradeId);
+    setAnnotationOpen(true);
   };
 
   return (
-    <div>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Symbol</TableCell>
-              <TableCell>Order Type</TableCell>
-              <TableCell>PnL</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+    <>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-700">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Time</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Symbol</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Side</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Size</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Entry</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Exit</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">PnL</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Notes</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-700">
             {trades.map((trade) => (
-              <TableRow key={trade.id}>
-                <TableCell>{new Date(trade.timestamp).toLocaleString()}</TableCell>
-                <TableCell>{trade.symbol}</TableCell>
-                <TableCell>{trade.orderType}</TableCell>
-                <TableCell>{trade.pnl.toFixed(2)}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpenAnnotation(trade.id)}>
-                    {localStorage.getItem(`trade_note_${trade.id}`) ? <Notes color="primary" /> : <NoteAdd />}
-                  </IconButton>
-                </TableCell>
-              </TableRow>
+              <tr key={trade.id}>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-300">{formatTime(trade.timestamp)}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-white font-medium">{trade.symbol}</td>
+                <td className={`px-4 py-2 whitespace-nowrap text-sm font-medium ${trade.isLong ? 'text-green-400' : 'text-red-400'}`}>
+                  {trade.isLong ? 'LONG' : 'SHORT'}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-400 uppercase">{trade.orderType}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-300">{trade.size}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-300">${trade.entryPrice.toFixed(2)}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-300">${trade.exitPrice.toFixed(2)}</td>
+                <td className={`px-4 py-2 whitespace-nowrap text-sm font-medium ${trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm">
+                  <button
+                    onClick={() => openAnnotation(trade.id)}
+                    className={`p-1 rounded hover:bg-gray-700 ${hasNote(trade.id) ? 'text-yellow-400' : 'text-gray-500'}`}
+                    title="Add note"
+                  >
+                    📝
+                  </button>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TradeAnnotation
-        tradeId={selectedTradeId}
-        open={openAnnotation}
-        onClose={handleCloseAnnotation}
-      />
-    </div>
+          </tbody>
+        </table>
+      </div>
+      
+      {selectedTradeId && (
+        <TradeAnnotation
+          tradeId={selectedTradeId}
+          isOpen={annotationOpen}
+          onClose={() => setAnnotationOpen(false)}
+        />
+      )}
+    </>
   );
-};
-
-export default TradeHistory;
+}

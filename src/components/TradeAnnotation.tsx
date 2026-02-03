@@ -1,82 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, TextField, Button, Box, Typography, IconButton } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+'use client';
+
+import { useState, useEffect } from 'react';
 
 interface TradeAnnotationProps {
   tradeId: string;
+  isOpen: boolean;
   onClose: () => void;
-  open: boolean;
+  existingNote?: string;
 }
 
-const TradeAnnotation: React.FC<TradeAnnotationProps> = ({ tradeId, onClose, open }) => {
-  const [note, setNote] = useState('');
-  const [editing, setEditing] = useState(false);
+export function TradeAnnotation({ tradeId, isOpen, onClose, existingNote }: TradeAnnotationProps) {
+  const [note, setNote] = useState(existingNote || '');
 
   useEffect(() => {
-    const savedNote = localStorage.getItem(`trade_note_${tradeId}`);
-    if (savedNote) {
-      setNote(savedNote);
+    if (isOpen) {
+      const saved = localStorage.getItem(`trade-note-${tradeId}`);
+      if (saved) setNote(saved);
     }
-  }, [tradeId]);
+  }, [isOpen, tradeId]);
 
   const handleSave = () => {
-    localStorage.setItem(`trade_note_${tradeId}`, note);
+    localStorage.setItem(`trade-note-${tradeId}`, note);
     onClose();
   };
 
   const handleDelete = () => {
-    localStorage.removeItem(`trade_note_${tradeId}`);
+    localStorage.removeItem(`trade-note-${tradeId}`);
     setNote('');
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 4,
-          borderRadius: '8px',
-        }}
-      >
-        <Typography variant="h6" gutterBottom>
-          {editing ? 'Edit Note' : 'Add Note'}
-        </Typography>
-        <TextField
-          fullWidth
-          multiline
-          rows={4}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-white mb-4">Trade Annotation</h3>
+        <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Add your notes here..."
-          variant="outlined"
+          placeholder="Add notes about this trade..."
+          className="w-full h-32 bg-gray-700 text-white rounded p-3 mb-4 resize-none"
         />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-          <div>
-            {note && (
-              <IconButton onClick={() => setEditing(!editing)} color="primary">
-                <Edit />
-              </IconButton>
-            )}
-            {note && (
-              <IconButton onClick={handleDelete} color="error">
-                <Delete />
-              </IconButton>
-            )}
-          </div>
-          <Button variant="contained" onClick={handleSave}>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={handleDelete}
+            className="px-4 py-2 text-red-400 hover:text-red-300"
+          >
+            Delete
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-400 hover:text-gray-300"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+          >
             Save
-          </Button>
-        </Box>
-      </Box>
-    </Modal>
+          </button>
+        </div>
+      </div>
+    </div>
   );
-};
-
-export default TradeAnnotation;
+}

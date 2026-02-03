@@ -1,4 +1,4 @@
-import { Trade } from '../types/trade';
+import { Trade } from '@/types/trade';
 
 export function calculateTotalPnL(trades: Trade[]): number {
   return trades.reduce((sum, trade) => sum + trade.pnl, 0);

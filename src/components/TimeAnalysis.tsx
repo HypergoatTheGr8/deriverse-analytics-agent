@@ -1,73 +1,65 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, Typography, Grid } from '@mui/material';
-import { calculateHourlyPerformance, calculateSessionPerformance } from '../lib/timeAnalysis';
-import { Trade } from '../types';
+'use client';
+
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Trade } from '@/types/trade';
 
 interface TimeAnalysisProps {
   trades: Trade[];
 }
 
-const TimeAnalysis: React.FC<TimeAnalysisProps> = ({ trades }) => {
-  const hourlyPerformance = calculateHourlyPerformance(trades);
-  const sessionPerformance = calculateSessionPerformance(trades);
+export function TimeAnalysis({ trades }: TimeAnalysisProps) {
+  // Calculate hourly performance
+  const hourlyData = Array.from({ length: 24 }, (_, hour) => {
+    const hourTrades = trades.filter(t => new Date(t.timestamp).getHours() === hour);
+    const avgPnl = hourTrades.length > 0 
+      ? hourTrades.reduce((sum, t) => sum + t.pnl, 0) / hourTrades.length 
+      : 0;
+    return { hour: `${hour}:00`, avgPnl, count: hourTrades.length };
+  });
+
+  // Calculate session performance
+  const getSession = (hour: number) => {
+    if (hour >= 0 && hour < 8) return 'Asian';
+    if (hour >= 8 && hour < 16) return 'London';
+    return 'New York';
+  };
+
+  const sessionData = ['Asian', 'London', 'New York'].map(session => {
+    const sessionTrades = trades.filter(t => getSession(new Date(t.timestamp).getHours()) === session);
+    const totalPnl = sessionTrades.reduce((sum, t) => sum + t.pnl, 0);
+    return { session, pnl: totalPnl, count: sessionTrades.length };
+  });
 
   return (
-    <div style={{ backgroundColor: '#121212', padding: '20px', borderRadius: '8px' }}>
-      <Typography variant="h5" gutterBottom style={{ color: '#fff' }}>
-        Time Analysis
-      </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Card style={{ backgroundColor: '#1e1e1e', color: '#fff' }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom style={{ color: '#fff' }}>
-                Hourly Performance
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={hourlyPerformance}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                  <XAxis dataKey="hour" stroke="#fff" />
-                  <YAxis stroke="#fff" />
-                  <Tooltip contentStyle={{ backgroundColor: '#1e1e1e', border: 'none', color: '#fff' }} />
-                  <Legend wrapperStyle={{ color: '#fff' }} />
-                  <Bar dataKey="avgPnl" fill="#8884d8" name="Average PnL" />
-                  <Bar dataKey="tradeCount" fill="#82ca9d" name="Trade Count" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Card style={{ backgroundColor: '#1e1e1e', color: '#fff' }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom style={{ color: '#fff' }}>
-                Session Breakdown
-              </Typography>
-              <div style={{ marginBottom: '16px' }}>
-                <Typography variant="subtitle1" style={{ color: '#fff' }}>Asian Session</Typography>
-                <Typography variant="body2" style={{ color: '#aaa' }}>
-                  PnL: {sessionPerformance.asian.pnl.toFixed(2)} | Trades: {sessionPerformance.asian.tradeCount}
-                </Typography>
-              </div>
-              <div style={{ marginBottom: '16px' }}>
-                <Typography variant="subtitle1" style={{ color: '#fff' }}>London Session</Typography>
-                <Typography variant="body2" style={{ color: '#aaa' }}>
-                  PnL: {sessionPerformance.london.pnl.toFixed(2)} | Trades: {sessionPerformance.london.tradeCount}
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="subtitle1" style={{ color: '#fff' }}>New York Session</Typography>
-                <Typography variant="body2" style={{ color: '#aaa' }}>
-                  PnL: {sessionPerformance.newYork.pnl.toFixed(2)} | Trades: {sessionPerformance.newYork.tradeCount}
-                </Typography>
-              </div>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+    <div className="space-y-6">
+      {/* Session Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {sessionData.map(s => (
+          <div key={s.session} className="bg-gray-700 rounded-lg p-4">
+            <p className="text-gray-400 text-sm">{s.session} Session</p>
+            <p className={`text-xl font-bold ${s.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              ${s.pnl.toFixed(2)}
+            </p>
+            <p className="text-gray-500 text-xs">{s.count} trades</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Hourly Chart */}
+      <div className="bg-gray-700 rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-4">Performance by Hour</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={hourlyData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="hour" stroke="#9CA3AF" fontSize={10} />
+            <YAxis stroke="#9CA3AF" fontSize={12} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
+            />
+            <Bar dataKey="avgPnl" fill="#10B981" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
-};
-
-export default TimeAnalysis;
+}

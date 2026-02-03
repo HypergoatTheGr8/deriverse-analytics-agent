@@ -1,4 +1,4 @@
-import { Trade, TradingMetrics } from '../types';
+import { Trade, TradingMetrics } from '@/types/trade';
 
 export async function generateTradeInsight(trades: Trade[], metrics: TradingMetrics): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY || 'placeholder_key';

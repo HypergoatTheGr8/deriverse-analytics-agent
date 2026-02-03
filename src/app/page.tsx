@@ -1,30 +1,40 @@
-import { Trade, TradingMetrics } from './types';
-import { AIInsightPanel } from './components/AIInsightPanel';
+import React from 'react';
+import { Grid } from '@mui/material';
+import StatCard from '../components/StatCard';
+import TimeAnalysis from '../components/TimeAnalysis';
+import TradeHistory from '../components/TradeHistory';
+import { Trade } from '../types';
 
-// Mock data for testing
-const mockTrades: Trade[] = [
-  { id: 1, symbol: 'SOL', side: 'buy', price: 100, quantity: 1, timestamp: '2023-10-01' },
-  { id: 2, symbol: 'BTC', side: 'sell', price: 50000, quantity: 0.1, timestamp: '2023-10-02' },
-];
+interface DashboardProps {
+  trades: Trade[];
+}
 
-const mockMetrics: TradingMetrics = {
-  pnl: 1500,
-  winRate: 0.75,
-  drawdown: 0.1,
-};
+const Dashboard: React.FC<DashboardProps> = ({ trades }) => {
+  const totalTrades = trades.length;
+  const totalPnl = trades.reduce((sum, trade) => sum + trade.pnl, 0);
+  const avgPnl = totalTrades > 0 ? totalPnl / totalTrades : 0;
 
-export default function Home() {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Deriverse Analytics Dashboard</h1>
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Trade History</h2>
-        <div className="bg-gray-800 p-4 rounded">
-          {/* Trade history table or list would go here */}
-          <p className="text-white">Trade history data will be displayed here.</p>
-        </div>
-      </div>
-      <AIInsightPanel trades={mockTrades} metrics={mockMetrics} />
+    <div style={{ padding: '20px' }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Total Trades" value={totalTrades.toString()} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Total PnL" value={totalPnl.toFixed(2)} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Avg PnL" value={avgPnl.toFixed(2)} />
+        </Grid>
+        <Grid item xs={12}>
+          <TimeAnalysis trades={trades} />
+        </Grid>
+        <Grid item xs={12}>
+          <TradeHistory trades={trades} />
+        </Grid>
+      </Grid>
     </div>
   );
-}
+};
+
+export default Dashboard;

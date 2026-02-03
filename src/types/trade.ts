@@ -1,14 +1,26 @@
 export interface Trade {
-  timestamp: Date;
-  action: 'buy' | 'sell';
+  id: string;
+  symbol: string;
+  action: string;
   size: number;
   entryPrice: number;
   exitPrice: number;
   fee: number;
   pnl: number;
   isLong: boolean;
-  symbol: string;
-  orderType: 'market' | 'limit';
+  timestamp: number;
   entryTime: number;
   exitTime: number;
+  orderType: 'market' | 'limit';
+}
+
+export interface TradingMetrics {
+  pnl: number;
+  winRate: number;
+  drawdown: number;
+  feeImpact?: number;
+  longShortRatio?: number;
+  avgTradeDuration?: number;
+  largestGain?: number;
+  largestLoss?: number;
 }

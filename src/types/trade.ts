@@ -7,4 +7,8 @@ export interface Trade {
   fee: number;
   pnl: number;
   isLong: boolean;
+  symbol: string;
+  orderType: 'market' | 'limit';
+  entryTime: number;
+  exitTime: number;
 }

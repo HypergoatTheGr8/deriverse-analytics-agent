@@ -1,25 +1,121 @@
-# Deriverse Analytics Dashboard
+# 🚀 Deriverse Analytics Dashboard
 
-Trading analytics with AI-powered insights for Deriverse on Solana.
+**Professional Trading Analytics for Solana Traders**
 
-## Features
+![Dashboard Preview](./screenshots/dashboard-1770116661916.png)
 
-- Wallet connection
-- PnL tracking
-- Win rate analysis
-- Drawdown analysis
-- AI Coach for actionable insights
+A comprehensive trading analytics solution for [Deriverse](https://deriverse.io), the next-gen decentralized trading ecosystem on Solana. Track your performance, analyze patterns, and get AI-powered insights to improve your trading.
 
-## Setup
+---
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Set environment variables (create a `.env` file):
-   ```
-   GEMINI_API_KEY=your_api_key_here
-   ```
-4. Run the development server: `npm run dev`
+## ✨ Features
 
-## Built for Superteam Bounty
+### 📊 Performance Metrics
+- **Total PnL** - Track your overall profit and loss
+- **Win Rate** - Percentage of profitable trades
+- **Long/Short Ratio** - Understand your directional bias
+- **Fee Analysis** - See how fees impact your profits
+- **Average Trade Duration** - Time-based performance insights
+- **Best/Worst Trade** - Identify your largest gains and losses
+- **Total Volume** - Track your trading activity
 
-This project was developed as part of the Superteam Bounty program.
+### 📈 Advanced Analytics
+- **Equity Curve** - Visualize your portfolio growth over time
+- **Drawdown Analysis** - Monitor peak-to-trough declines (red dashed line)
+- **Session Performance** - Compare Asian, London, and NY session results
+- **Hourly Breakdown** - Find your most profitable trading hours
+
+### 🛠️ Trading Tools
+- **Symbol Filtering** - Focus on specific trading pairs
+- **Date Range Selection** - Analyze specific time periods
+- **Trade Annotations** - Add notes to trades for journaling
+- **Order Type Tracking** - Compare market vs limit order performance
+
+### 🤖 AI Trading Coach
+Get automated insights about your trading patterns, risks, and areas for improvement powered by AI analysis.
+
+---
+
+## 🖥️ Tech Stack
+
+- **Frontend:** Next.js 14 (App Router) + TypeScript
+- **Styling:** Tailwind CSS
+- **Charts:** Recharts
+- **Blockchain:** Solana Web3.js + Wallet Adapter
+- **AI:** Gemini API for trade analysis
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/HypergoatTheGr8/deriverse-analytics-agent.git
+cd deriverse-analytics-agent
+
+# Install dependencies
+npm install
+
+# Set environment variables (optional)
+cp .env.example .env.local
+# Add your HELIUS_API_KEY and GEMINI_API_KEY
+
+# Run development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   └── page.tsx          # Main dashboard page
+├── components/
+│   ├── StatCard.tsx      # Metric display cards
+│   ├── PnLChart.tsx      # Equity curve + drawdown
+│   ├── TimeAnalysis.tsx  # Session & hourly breakdown
+│   ├── TradeHistory.tsx  # Trade table with annotations
+│   ├── FilterBar.tsx     # Symbol & date filters
+│   └── AIInsightPanel.tsx# AI-powered insights
+├── lib/
+│   ├── analytics.ts      # PnL, win rate calculations
+│   ├── helius.ts         # Solana transaction fetching
+│   └── gemini.ts         # AI insight generation
+└── types/
+    └── trade.ts          # TypeScript interfaces
+```
+
+---
+
+## 🎯 Bounty Submission
+
+Built for the [Superteam Deriverse Bounty](https://superteam.fun/earn/listing/design-trading-analytics-dashboard-with-journal-and-portfolio-analysis).
+
+**Features Implemented:**
+- ✅ Total PnL tracking with visual indicators
+- ✅ Trading volume and fee analysis
+- ✅ Win rate and trade count metrics
+- ✅ Average trade duration calculations
+- ✅ Long/Short ratio with directional bias
+- ✅ Largest gain/loss tracking
+- ✅ Symbol-specific filtering
+- ✅ Date range selection
+- ✅ Historical PnL charts with drawdown
+- ✅ Time-based performance (daily, session, hourly)
+- ✅ Trade history with annotations
+- ✅ Order type performance analysis
+- ✅ AI-powered trading insights
+
+---
+
+## 📜 License
+
+MIT License - feel free to use and modify.
+
+---
+
+**Built with 🤖 by [Moltbot](https://github.com/HypergoatTheGr8) for the Solana ecosystem.**

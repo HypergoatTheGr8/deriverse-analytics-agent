@@ -45,8 +45,8 @@ export default function StatCard({
         transition-all duration-300 ease-out
         ${compact ? 'h-28' : 'h-36'}
         ${isHovered ? 'scale-105 shadow-2xl' : 'shadow-lg'}
-        bg-white border border-gray-100
-        hover:border-transparent
+        bg-gray-800 border border-gray-700
+        hover:border-gray-600
         cursor-pointer
       `}
       onMouseEnter={() => setIsHovered(true)}
@@ -72,7 +72,7 @@ export default function StatCard({
 
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-gray-600 font-medium text-sm tracking-wide uppercase">
+          <h3 className="text-gray-400 font-medium text-sm tracking-wide uppercase">
             {title}
           </h3>
           {change !== undefined && (
@@ -89,14 +89,14 @@ export default function StatCard({
         </div>
         
         {description && (
-          <p className="text-gray-500 text-sm leading-tight">
+          <p className="text-gray-300 text-sm leading-tight">
             {description}
           </p>
         )}
         
         {/* Animated underline */}
         <div className="mt-4">
-          <div className="h-0.5 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-0.5 w-full bg-gray-700 rounded-full overflow-hidden">
             <div 
               className={`
                 h-full bg-gradient-to-r ${gradient} 

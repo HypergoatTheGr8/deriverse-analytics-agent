@@ -12,7 +12,7 @@ async function takeScreenshot() {
   await page.setViewport({ width: 1920, height: 1080 });
   
   try {
-    await page.goto('http://localhost:3000', { waitUntil: 'networkidle0', timeout: 30000 });
+    await page.goto('http://10.0.0.157:3000', { waitUntil: 'networkidle0', timeout: 30000 });
     
     const screenshotPath = path.join(__dirname, '..', 'screenshots', `dashboard-${Date.now()}.png`);
     await page.screenshot({ path: screenshotPath, fullPage: true });
@@ -21,6 +21,7 @@ async function takeScreenshot() {
     return screenshotPath;
   } catch (error) {
     console.error('Error taking screenshot:', error.message);
+    console.error('Full error:', error);
   }
   
   await browser.close();

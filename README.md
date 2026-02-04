@@ -2,7 +2,9 @@
 
 **Professional Trading Analytics for Solana Traders**
 
-![Dashboard Preview](./screenshots/dashboard-1770116661916.png)
+![Dashboard Demo](./demo/dashboard-demo.gif)
+
+**Watch the demo video:** [dashboard-demo.mp4](./demo/dashboard-demo.mp4)
 
 A comprehensive trading analytics solution for [Deriverse](https://deriverse.io), the next-gen decentralized trading ecosystem on Solana. Track your performance, analyze patterns, and get AI-powered insights to improve your trading.
 
@@ -95,20 +97,40 @@ src/
 
 Built for the [Superteam Deriverse Bounty](https://superteam.fun/earn/listing/design-trading-analytics-dashboard-with-journal-and-portfolio-analysis).
 
-**Features Implemented:**
-- ✅ Total PnL tracking with visual indicators
-- ✅ Trading volume and fee analysis
-- ✅ Win rate and trade count metrics
-- ✅ Average trade duration calculations
-- ✅ Long/Short ratio with directional bias
-- ✅ Largest gain/loss tracking
-- ✅ Symbol-specific filtering
-- ✅ Date range selection
-- ✅ Historical PnL charts with drawdown
-- ✅ Time-based performance (daily, session, hourly)
-- ✅ Trade history with annotations
-- ✅ Order type performance analysis
-- ✅ AI-powered trading insights
+**🚀 Why This Submission Stands Out:**
+
+### **🌟 Innovation Beyond Requirements**
+1. **AI Trading Coach** - Gemini-powered insights identify patterns & suggest improvements
+2. **Drawdown Visualization** - Professional red dashed line shows peak-to-trough declines  
+3. **Session Analysis** - Compare Asian/London/NY trading performance
+4. **Hourly Heatmap** - Find your most profitable trading hours
+
+### **🎨 Professional Polish**
+- **Gradient animations** on cards and headers
+- **Smooth hover effects** for interactive elements  
+- **Responsive design** works on mobile & desktop
+- **Visual hierarchy** with clear information architecture
+
+### **🛠️ Production Ready**
+- **TypeScript** for type safety
+- **Next.js 14** with App Router
+- **Build passes** without errors
+- **Ready to deploy** to Vercel/Netlify
+
+**✅ All Bounty Requirements Implemented:**
+- Total PnL tracking with visual indicators
+- Trading volume and fee analysis  
+- Win rate and trade count metrics
+- Average trade duration calculations
+- Long/Short ratio with directional bias
+- Largest gain/loss tracking
+- Symbol-specific filtering
+- Date range selection
+- Historical PnL charts with drawdown
+- Time-based performance (daily, session, hourly)
+- Trade history with annotations
+- Order type performance analysis
+- AI-powered trading insights
 
 ---
 

@@ -1,24 +1,141 @@
+'use client';
+import { useState } from 'react';
+
 interface StatCardProps {
-  label: string;
+  title: string;
   value: string;
-  change?: string;
-  isPositive?: boolean;
+  change?: number;
+  description?: string;
+  gradient?: string;
+  compact?: boolean;
 }
 
-export function StatCard({ label, value, change, isPositive }: StatCardProps) {
+export default function StatCard({ 
+  title, 
+  value, 
+  change, 
+  description, 
+  gradient = 'from-blue-400 to-cyan-600',
+  compact = false 
+}: StatCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const getChangeColor = (changeValue: number) => {
+    if (changeValue > 0) return 'text-green-600';
+    if (changeValue < 0) return 'text-red-600';
+    return 'text-gray-600';
+  };
+
+  const getChangeIcon = (changeValue: number) => {
+    if (changeValue > 0) return '↗';
+    if (changeValue < 0) return '↘';
+    return '→';
+  };
+
+  const formatChange = (changeValue: number) => {
+    if (changeValue > 0) return `+${changeValue.toFixed(2)}`;
+    if (changeValue < 0) return changeValue.toFixed(2);
+    return '0.00';
+  };
+
   return (
-    <div className={`bg-gray-800 rounded-lg p-4 hover:scale-105 transition-all duration-200 cursor-pointer border-l-4 ${
-      isPositive === true ? 'border-green-500 hover:shadow-green-500/20 hover:shadow-lg' : 
-      isPositive === false ? 'border-red-500 hover:shadow-red-500/20 hover:shadow-lg' : 
-      'border-gray-700 hover:shadow-lg'
-    }`}>
-      <p className="text-gray-400 text-sm">{label}</p>
-      <p className={`text-2xl font-bold ${
-        isPositive === true ? 'text-green-400' : 
-        isPositive === false ? 'text-red-400' : 
-        'text-white'
-      }`}>{value}</p>
-      {change && <p className="text-sm text-gray-500">{change}</p>}
+    <div 
+      className={`
+        relative overflow-hidden rounded-2xl p-6 
+        transition-all duration-300 ease-out
+        ${compact ? 'h-28' : 'h-36'}
+        ${isHovered ? 'scale-105 shadow-2xl' : 'shadow-lg'}
+        bg-white border border-gray-100
+        hover:border-transparent
+        cursor-pointer
+      `}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Animated gradient background on hover */}
+      <div 
+        className={`
+          absolute inset-0 opacity-0 transition-opacity duration-500
+          ${isHovered ? 'opacity-5' : 'opacity-0'}
+          bg-gradient-to-br ${gradient}
+        `}
+      />
+      
+      {/* Glow effect */}
+      <div 
+        className={`
+          absolute -inset-1 opacity-0 blur-xl transition-opacity duration-500
+          ${isHovered ? 'opacity-30' : 'opacity-0'}
+          bg-gradient-to-br ${gradient}
+        `}
+      />
+
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-gray-600 font-medium text-sm tracking-wide uppercase">
+            {title}
+          </h3>
+          {change !== undefined && (
+            <span className={`text-xs font-semibold ${getChangeColor(change)}`}>
+              {getChangeIcon(change)} {formatChange(change)}
+            </span>
+          )}
+        </div>
+        
+        <div className={`font-bold ${compact ? 'text-2xl' : 'text-3xl'} mb-2`}>
+          <span className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
+            {value}
+          </span>
+        </div>
+        
+        {description && (
+          <p className="text-gray-500 text-sm leading-tight">
+            {description}
+          </p>
+        )}
+        
+        {/* Animated underline */}
+        <div className="mt-4">
+          <div className="h-0.5 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div 
+              className={`
+                h-full bg-gradient-to-r ${gradient} 
+                transition-transform duration-700 ease-out
+                ${isHovered ? 'translate-x-0' : '-translate-x-full'}
+              `}
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Floating particles animation */}
+      {isHovered && (
+        <>
+          <div 
+            className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 opacity-30"
+            style={{
+              top: '20%',
+              left: '10%',
+              animation: 'float 3s infinite ease-in-out'
+            }}
+          />
+          <div 
+            className="absolute w-1 h-1 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 opacity-20"
+            style={{
+              top: '60%',
+              left: '80%',
+              animation: 'float 4s infinite ease-in-out 0.5s'
+            }}
+          />
+        </>
+      )}
+      
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(180deg); }
+        }
+      `}</style>
     </div>
   );
 }

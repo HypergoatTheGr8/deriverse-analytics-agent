@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { usePrices } from '@/hooks/usePrices';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import StatCard from './StatCard';
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [filteredTrades, setFilteredTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ symbol?: string; fromDate?: number; toDate?: number }>({});
 
   useEffect(() => {
@@ -24,6 +26,9 @@ export default function Dashboard() {
       loadTrades();
     }
   }, [publicKey]);
+
+  // Real-time prices (USD) for top symbols used in the UI
+  const { prices: marketPrices, loading: pricesLoading } = usePrices(15000);
 
   useEffect(() => {
     // Apply filters
@@ -40,51 +45,46 @@ export default function Dashboard() {
     if (!publicKey) return;
     
     setLoading(true);
-    try {
-      // For demo purposes, use mock data
-      // In production, this would call Helius API
-      setTrades(generateMockTrades());
-    } catch (error) {
+    setError(null);
+      try {
+      // Use server API to fetch trades (Helius API key stays server-side)
+      const res = await fetch(`/api/helius/transactions?wallet=${publicKey.toString()}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to fetch trades from server');
+      }
+      const walletTrades = await res.json();
+      setTrades(walletTrades);
+    } catch (error: any) {
       console.error('Failed to load trades:', error);
+      setError(`Failed to load trading data: ${error.message}. You can enter another wallet address below or add a HELIUS_API_KEY to your environment to enable Helius parsing.`);
       setTrades([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateMockTrades = (): Trade[] => {
-    const symbols = ['SOL/USDC', 'BTC/USDC', 'ETH/USDC', 'RAY/USDC'];
-    const trades: Trade[] = [];
-    const now = Date.now();
-    
-    for (let i = 0; i < 50; i++) {
-      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-      const entryTime = now - (i * 86400000); // Spread over days
-      const exitTime = entryTime + (Math.random() * 3600000) + 300000; // 5 min to 1 hour
-      const entryPrice = 100 + Math.random() * 50;
-      const exitPrice = entryPrice + (Math.random() * 40 - 20);
-      const size = Math.random() * 10 + 1;
-      const pnl = (exitPrice - entryPrice) * size;
-      const fees = Math.random() * 0.5;
-      
-      trades.push({
-        id: `trade-${i}`,
-        symbol,
-        action: Math.random() > 0.5 ? 'long' : 'short',
-        isLong: Math.random() > 0.5,
-        entryPrice,
-        exitPrice,
-        size,
-        fee: fees,
-        pnl,
-        timestamp: entryTime,
-        entryTime,
-        exitTime,
-        orderType: Math.random() > 0.7 ? 'limit' : 'market',
-      });
+  // Manual fetch by arbitrary wallet address (useful when connected wallet has no visible trades)
+  const [manualWallet, setManualWallet] = useState('');
+  const fetchForAddress = async (addr: string) => {
+    if (!addr) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/helius/transactions?wallet=${addr}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to fetch trades from server');
+      }
+      const walletTrades = await res.json();
+      setTrades(walletTrades);
+    } catch (err: any) {
+      console.error('Manual fetch failed:', err);
+      setError(`Failed to fetch for ${addr}: ${err.message}`);
+      setTrades([]);
+    } finally {
+      setLoading(false);
     }
-    
-    return trades.sort((a, b) => b.entryTime - a.entryTime);
   };
 
   const metrics = useTradingMetrics(filteredTrades, filters);
@@ -112,7 +112,8 @@ export default function Dashboard() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-500 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-300">Loading your trading data...</p>
+          <p className="text-lg text-gray-300">Loading your trading data from Solana blockchain...</p>
+          <p className="text-sm text-gray-500 mt-2">Fetching transaction history via Helius API</p>
         </div>
       </div>
     );
@@ -131,6 +132,18 @@ export default function Dashboard() {
               <p className="text-gray-300 mt-2">
                 Connected: <span className="font-mono text-sm bg-gray-800 border border-gray-700 px-2 py-1 rounded text-amber-300">{publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}</span>
               </p>
+              <p className="text-sm text-gray-400 mt-1">
+                {pricesLoading && <span>Loading prices…</span>}
+                {!pricesLoading && marketPrices && (
+                  <span>
+                    SOL: <span className="font-mono">${marketPrices.SOL?.toFixed(2) ?? '—'}</span>
+                    {' • '}
+                    BTC: <span className="font-mono">${marketPrices.BTC?.toFixed(2) ?? '—'}</span>
+                    {' • '}
+                    ETH: <span className="font-mono">${marketPrices.ETH?.toFixed(2) ?? '—'}</span>
+                  </span>
+                )}
+              </p>
             </div>
             <div className="flex items-center gap-4">
               <WalletMultiButton className="!bg-gradient-to-r !from-teal-600 !to-amber-600 !text-white !rounded-lg !px-4 !py-2 !font-semibold hover:!from-teal-500 hover:!to-amber-500 transition-all duration-300" />
@@ -140,6 +153,28 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-amber-900/30 border border-amber-700 rounded-xl">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-amber-300">Data Loading Notice</h3>
+                <div className="mt-2 text-sm text-amber-200">
+                  <p>{error}</p>
+                  <p className="mt-1 text-amber-300/80">
+                    No on-chain trades were found or parsing failed. Try entering a different wallet address below, or add a HELIUS_API_KEY in Vercel or `.env.local` to enable richer Helius parsing.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
         <div className="mb-8">
           <FilterBar 
@@ -147,6 +182,22 @@ export default function Dashboard() {
             onFilterChange={setFilters}
             currentFilters={filters}
           />
+
+          {/* Manual wallet fetch when automatic fetch fails or for viewing other wallets */}
+          <div className="mt-4 flex gap-2 items-center">
+            <input
+              value={manualWallet}
+              onChange={(e) => setManualWallet(e.target.value)}
+              placeholder="Paste wallet address to fetch trades"
+              className="bg-gray-700 text-white rounded px-3 py-2 w-full max-w-md"
+            />
+            <button
+              onClick={() => fetchForAddress(manualWallet)}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded"
+            >
+              Fetch
+            </button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -166,9 +217,9 @@ export default function Dashboard() {
           />
           <StatCard 
             title="Max Drawdown" 
-            value={`$${Math.abs(metrics.maxDrawdown).toFixed(2)}`}
-            change={-metrics.maxDrawdown}
-            description="Largest peak-to-trough decline"
+            value={`${(metrics.maxDrawdown * 100).toFixed(1)}%`}
+            change={metrics.maxDrawdown}
+            description="Largest peak-to-trough decline (percent)"
             gradient="from-rose-500 to-pink-500"
           />
           <StatCard 
@@ -260,7 +311,7 @@ export default function Dashboard() {
           <p>
             Showing {filteredTrades.length} of {trades.length} trades • 
             Long/Short: {(metrics.longShortRatio * 100).toFixed(0)}% long • 
-            Fee Impact: ${metrics.feeImpact.toFixed(2)} • 
+            Fee Impact: {(metrics.feeImpact * 100).toFixed(2)}% • 
             Avg Win/Loss: ${metrics.avgWinLoss?.avgWin?.toFixed(2) || '0.00'} / ${Math.abs(metrics.avgWinLoss?.avgLoss || 0).toFixed(2)}
           </p>
         </div>

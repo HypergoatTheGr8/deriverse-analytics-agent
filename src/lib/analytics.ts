@@ -7,7 +7,8 @@ export function calculateTotalPnL(trades: Trade[]): number {
 export function calculateWinRate(trades: Trade[]): number {
   if (trades.length === 0) return 0;
   const profitableTrades = trades.filter(trade => trade.pnl > 0).length;
-  return (profitableTrades / trades.length) * 100;
+  // Return fraction 0..1
+  return profitableTrades / trades.length;
 }
 
 export function calculateMaxDrawdown(equityCurve: number[]): number {
@@ -16,8 +17,9 @@ export function calculateMaxDrawdown(equityCurve: number[]): number {
   let maxDrawdown = 0;
   for (const value of equityCurve) {
     if (value > peak) peak = value;
-    const drawdown = ((peak - value) / peak) * 100;
-    if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+    if (peak <= 0) continue; // avoid division by zero or meaningless drawdown when peak <= 0
+    const drawdownFraction = (peak - value) / peak; // fraction 0..1
+    if (drawdownFraction > maxDrawdown) maxDrawdown = drawdownFraction;
   }
   return maxDrawdown;
 }
@@ -26,13 +28,46 @@ export function calculateFeeImpact(trades: Trade[]): number {
   const totalFees = trades.reduce((sum, trade) => sum + trade.fee, 0);
   const totalProfit = trades.reduce((sum, trade) => sum + (trade.pnl > 0 ? trade.pnl : 0), 0);
   if (totalProfit === 0) return 0;
-  return (totalFees / totalProfit) * 100;
+  // Return fraction e.g. 0.25 means fees are 25% of profit
+  return totalFees / totalProfit;
+}
+
+export function calculateFeeComposition(trades: Trade[]): {
+  totalFees: number;
+  marketOrderFees: number;
+  limitOrderFees: number;
+  feeBySymbol: Record<string, number>;
+  avgFeePerTrade: number;
+} {
+  const marketOrderTrades = trades.filter(t => t.orderType === 'market');
+  const limitOrderTrades = trades.filter(t => t.orderType === 'limit');
+  
+  const totalFees = trades.reduce((sum, trade) => sum + trade.fee, 0);
+  const marketOrderFees = marketOrderTrades.reduce((sum, trade) => sum + trade.fee, 0);
+  const limitOrderFees = limitOrderTrades.reduce((sum, trade) => sum + trade.fee, 0);
+  
+  // Calculate fees by symbol
+  const feeBySymbol: Record<string, number> = {};
+  trades.forEach(trade => {
+    feeBySymbol[trade.symbol] = (feeBySymbol[trade.symbol] || 0) + trade.fee;
+  });
+  
+  const avgFeePerTrade = trades.length > 0 ? totalFees / trades.length : 0;
+  
+  return {
+    totalFees,
+    marketOrderFees,
+    limitOrderFees,
+    feeBySymbol,
+    avgFeePerTrade
+  };
 }
 
 export function calculateLongShortRatio(trades: Trade[]): number {
   if (trades.length === 0) return 0;
   const longTrades = trades.filter(trade => trade.isLong).length;
-  return (longTrades / trades.length) * 100;
+  // Return fraction 0..1
+  return longTrades / trades.length;
 }
 
 export function calculateAverageTradeDuration(trades: Trade[]): number {

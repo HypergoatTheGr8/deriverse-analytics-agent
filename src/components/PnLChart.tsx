@@ -16,6 +16,7 @@ import { Trade } from '@/types/trade';
 
 interface PnLChartProps {
   trades: Trade[];
+  prices?: Record<string, number> | null;
 }
 
 interface ChartDataPoint {
@@ -26,7 +27,7 @@ interface ChartDataPoint {
   equity: number;
 }
 
-export default function PnLChart({ trades }: PnLChartProps) {
+export default function PnLChart({ trades, prices }: PnLChartProps) {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [maxDrawdown, setMaxDrawdown] = useState(0);
 

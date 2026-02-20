@@ -20,8 +20,21 @@ export function TradeAnnotation({ tradeId, isOpen, onClose, existingNote }: Trad
   }, [isOpen, tradeId]);
 
   const handleSave = () => {
-    localStorage.setItem(`trade-note-${tradeId}`, note);
+    // Sanitize input before saving
+    const sanitizedNote = sanitizeInput(note);
+    localStorage.setItem(`trade-note-${tradeId}`, sanitizedNote);
     onClose();
+  };
+
+  const sanitizeInput = (input: string): string => {
+    // Remove potentially dangerous HTML/script tags
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<[^>]*>/g, '') // Remove all HTML tags
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+=/gi, '')
+      .trim()
+      .substring(0, 1000); // Limit to 1000 characters
   };
 
   const handleDelete = () => {
@@ -39,7 +52,7 @@ export function TradeAnnotation({ tradeId, isOpen, onClose, existingNote }: Trad
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Add notes about this trade..."
+          placeholder="Why entered, exit rationale, lessons learned. E.g. 'Entered on breakout; exited +3% after news; next time hold for trend.'"
           className="w-full h-32 bg-gray-700 text-white rounded p-3 mb-4 resize-none"
         />
         <div className="flex gap-2 justify-end">

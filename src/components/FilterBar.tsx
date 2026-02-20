@@ -24,9 +24,30 @@ export default function FilterBar({ trades, onFilterChange, currentFilters }: Fi
     // Convert string dates to timestamps when they change
     const filters: { symbol?: string; fromDate?: number; toDate?: number } = {};
     
-    if (localSymbol) filters.symbol = localSymbol;
-    if (localFromDate) filters.fromDate = new Date(localFromDate).getTime();
-    if (localToDate) filters.toDate = new Date(localToDate).getTime();
+    if (localSymbol && validateSymbol(localSymbol)) {
+      filters.symbol = localSymbol;
+    }
+    
+    if (localFromDate && validateDate(localFromDate)) {
+      const fromDate = new Date(localFromDate);
+      if (!isNaN(fromDate.getTime())) {
+        filters.fromDate = fromDate.getTime();
+      }
+    }
+    
+    if (localToDate && validateDate(localToDate)) {
+      const toDate = new Date(localToDate);
+      if (!isNaN(toDate.getTime())) {
+        // Add one day to include the entire selected day
+        filters.toDate = toDate.getTime() + 86400000 - 1;
+      }
+    }
+    
+    // Validate date range
+    if (filters.fromDate && filters.toDate && filters.fromDate > filters.toDate) {
+      // Swap dates if from > to
+      [filters.fromDate, filters.toDate] = [filters.toDate, filters.fromDate];
+    }
     
     // Apply filters after a short delay to avoid excessive updates
     const timeoutId = setTimeout(() => {
@@ -35,6 +56,16 @@ export default function FilterBar({ trades, onFilterChange, currentFilters }: Fi
     
     return () => clearTimeout(timeoutId);
   }, [localSymbol, localFromDate, localToDate, onFilterChange]);
+
+  const validateSymbol = (symbol: string): boolean => {
+    // Basic symbol validation: alphanumeric with optional slash
+    return /^[A-Z0-9]+\/[A-Z0-9]+$/.test(symbol) || /^[A-Z0-9]+$/.test(symbol);
+  };
+
+  const validateDate = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()) && dateString.length === 10;
+  };
 
   // Calculate min and max dates from trades
   const minDate = trades.length > 0 

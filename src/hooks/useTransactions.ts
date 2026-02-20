@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchWalletTransactions } from '../lib/helius';
+import { fetchSimpleTransactions } from '../lib/helius';
 
 interface Transaction {
   timestamp: string;
@@ -21,7 +21,7 @@ export const useTransactions = (walletAddress: string) => {
       setError(null);
       
       try {
-        const data = await fetchWalletTransactions(walletAddress);
+        const data = await fetchSimpleTransactions(walletAddress);
         setTransactions(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch transactions');

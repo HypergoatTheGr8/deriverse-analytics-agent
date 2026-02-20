@@ -15,18 +15,47 @@ export function AIInsightPanel({ trades, metrics }: AIInsightPanelProps) {
   const generateInsight = async () => {
     setLoading(true);
     
-    // Simulated AI insight for demo (would call Gemini API in production)
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Call server-side API which uses OPENROUTER_API_KEY (keeps secret server-side)
+      const res = await fetch('/api/ai/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trades, metrics }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `AI server returned ${res.status}`);
+      }
+
+      const json = await res.json();
+      if (json?.insight) setInsight(json.insight);
+      else throw new Error(json?.error || 'No insight returned');
+    } catch (error: any) {
+      console.error('Failed to generate AI insight:', error);
+      // Fallback to intelligent insights based on data
+      const fallbackInsights = generateFallbackInsights();
+      setInsight(fallbackInsights[Math.floor(Math.random() * fallbackInsights.length)]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateFallbackInsights = (): string[] => {
+    const longTrades = trades.filter(t => t.isLong).length;
+    const shortTrades = trades.filter(t => !t.isLong).length;
+    const profitableTrades = trades.filter(t => t.pnl > 0).length;
+    const totalFees = trades.reduce((sum, trade) => sum + trade.fee, 0);
+    const avgTradeSize = trades.length > 0 ? trades.reduce((sum, trade) => sum + trade.size, 0) / trades.length : 0;
     
-    const insights = [
-      `Your win rate of ${metrics.winRate.toFixed(1)}% is solid. Consider reducing position size on losing streaks to protect capital.`,
-      `You've made ${trades.length} trades. Your best performing asset appears to be SOL-PERP. Focus more capital there.`,
-      `Fee impact is eating into profits. Consider using limit orders more frequently to reduce costs.`,
-      `Your long bias (${trades.filter(t => t.isLong).length}/${trades.length} trades) may expose you to downside risk in bear markets.`
+    return [
+      `Your ${(metrics.winRate * 100).toFixed(1)}% win rate is ${metrics.winRate > 0.5 ? 'strong' : 'needs improvement'}. ${metrics.winRate > 0.5 ? 'Maintain this edge while working on risk management.' : 'Focus on improving entry timing and trade selection.'}`,
+      `You've executed ${trades.length} trades with ${longTrades} long and ${shortTrades} short positions. ${longTrades > shortTrades * 1.5 ? 'Your long bias could expose you in downtrends.' : 'Your balanced approach helps manage directional risk.'}`,
+      `Fees total $${totalFees.toFixed(2)} (${(metrics.pnl ? ((totalFees / Math.abs(metrics.pnl)) * 100).toFixed(1) : '0.0')}% of PnL). ${metrics.pnl && totalFees > Math.abs(metrics.pnl) * 0.2 ? 'Consider reducing trade frequency or using limit orders.' : 'Your fee management is efficient.'}`,
+      `Average position size is ${avgTradeSize.toFixed(2)}. ${avgTradeSize > 5 ? 'Your larger positions increase both potential gains and risks.' : 'Conservative sizing helps manage drawdowns.'}`,
+      `Max drawdown of ${(metrics.drawdown * 100).toFixed(1)}% ${(metrics.drawdown * 100) > 20 ? 'exceeds recommended limits. Consider tighter stops.' : 'is within acceptable risk parameters.'}`,
+      `Best trade gained $${metrics.largestGain?.toFixed(2) || '0.00'}, worst lost $${Math.abs(metrics.largestLoss || 0).toFixed(2)}. ${(metrics.largestGain || 0) > Math.abs(metrics.largestLoss || 0) * 2 ? 'Your winners outperform losers - good risk-reward ratio.' : 'Work on letting winners run and cutting losers quickly.'}`
     ];
-    
-    setInsight(insights[Math.floor(Math.random() * insights.length)]);
-    setLoading(false);
   };
 
   return (

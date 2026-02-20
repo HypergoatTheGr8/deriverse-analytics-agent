@@ -4,6 +4,7 @@ import {
   calculateWinRate,
   calculateMaxDrawdown,
   calculateFeeImpact,
+  calculateFeeComposition,
   calculateLongShortRatio,
   calculateAverageTradeDuration,
   calculateLargestGainLoss,
@@ -27,15 +28,32 @@ export function useTradingMetrics(trades: Trade[], filters?: { symbol?: string; 
     [0]
   );
 
+  const totalPnL = calculateTotalPnL(filteredTrades);
+  const winRate = calculateWinRate(filteredTrades);
+  const maxDrawdown = calculateMaxDrawdown(equityCurve);
+  const feeImpact = calculateFeeImpact(filteredTrades);
+  const feeComposition = calculateFeeComposition(filteredTrades);
+  const longShortRatio = calculateLongShortRatio(filteredTrades);
+  const avgTradeDuration = calculateAverageTradeDuration(filteredTrades);
+  const largestGainLoss = calculateLargestGainLoss(filteredTrades);
+  const avgWinLoss = calculateAverageWinLoss(filteredTrades);
+  const totalVolume = calculateVolumeAnalysis(filteredTrades);
+
   return {
-    totalPnL: calculateTotalPnL(filteredTrades),
-    winRate: calculateWinRate(filteredTrades),
-    maxDrawdown: calculateMaxDrawdown(equityCurve),
-    feeImpact: calculateFeeImpact(filteredTrades),
-    longShortRatio: calculateLongShortRatio(filteredTrades),
-    avgTradeDuration: calculateAverageTradeDuration(filteredTrades),
-    largestGainLoss: calculateLargestGainLoss(filteredTrades),
-    avgWinLoss: calculateAverageWinLoss(filteredTrades),
-    totalVolume: calculateVolumeAnalysis(filteredTrades),
+    // keep legacy-friendly names used across the UI
+    totalPnL,
+    pnl: totalPnL,
+    winRate, // fraction 0..1
+    maxDrawdown, // fraction 0..1
+    drawdown: maxDrawdown,
+    feeImpact, // fraction 0..1
+    feeComposition,
+    longShortRatio, // fraction 0..1
+    avgTradeDuration,
+    largestGainLoss,
+    largestGain: largestGainLoss.largestGain,
+    largestLoss: largestGainLoss.largestLoss,
+    avgWinLoss,
+    totalVolume,
   };
 }
